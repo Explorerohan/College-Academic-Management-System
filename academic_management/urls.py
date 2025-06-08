@@ -16,7 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.shortcuts import redirect
+from users.views import login_view, teacher_dashboard, student_dashboard
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('login/', login_view, name='login'),
+    path('teacher/dashboard/', teacher_dashboard, name='teacher_dashboard'),
+    path('student/dashboard/', student_dashboard, name='student_dashboard'),
+    path('', lambda request: redirect('login'), name='home'),
 ]
