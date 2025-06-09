@@ -1,0 +1,61 @@
+{% extends 'users/base.html' %}
+{% block title %}Announcements | Academic Management System{% endblock %}
+{% block content %}
+<div class="container mx-auto p-6">
+    <h2 class="text-3xl font-bold mb-6">Announcements</h2>
+    
+    <!-- Global Announcements -->
+    <div class="mb-8">
+        <h3 class="text-2xl font-semibold mb-4">Global Announcements</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for announcement in announcements %}
+                {% if not announcement.student %}
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-xl font-semibold mb-2">{{ announcement.title }}</h3>
+                    <p class="text-gray-700 mb-2">{{ announcement.content|truncatewords:20 }}</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-gray-400">Posted: {{ announcement.created_at|date:"Y-m-d H:i" }}</span>
+                        {% if announcement.priority == 'high' %}
+                            <span class="ml-2 text-xs px-2 py-1 rounded bg-red-100 text-red-700">{{ announcement.get_priority_display }}</span>
+                        {% elif announcement.priority == 'medium' %}
+                            <span class="ml-2 text-xs px-2 py-1 rounded bg-yellow-100 text-yellow-700">{{ announcement.get_priority_display }}</span>
+                        {% else %}
+                            <span class="ml-2 text-xs px-2 py-1 rounded bg-green-100 text-green-700">{{ announcement.get_priority_display }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            {% empty %}
+            <div class="col-span-full text-gray-500">No global announcements found.</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Personal Announcements -->
+    <div>
+        <h3 class="text-2xl font-semibold mb-4">Personal Announcements</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for announcement in announcements %}
+                {% if announcement.student %}
+                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
+                    <h3 class="text-xl font-semibold mb-2">{{ announcement.title }}</h3>
+                    <p class="text-gray-700 mb-2">{{ announcement.content|truncatewords:20 }}</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-gray-400">Posted: {{ announcement.created_at|date:"Y-m-d H:i" }}</span>
+                        {% if announcement.priority == 'high' %}
+                            <span class="ml-2 text-xs px-2 py-1 rounded bg-red-100 text-red-700">{{ announcement.get_priority_display }}</span>
+                        {% elif announcement.priority == 'medium' %}
+                            <span class="ml-2 text-xs px-2 py-1 rounded bg-yellow-100 text-yellow-700">{{ announcement.get_priority_display }}</span>
+                        {% else %}
+                            <span class="ml-2 text-xs px-2 py-1 rounded bg-green-100 text-green-700">{{ announcement.get_priority_display }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            {% empty %}
+            <div class="col-span-full text-gray-500">No personal announcements found.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

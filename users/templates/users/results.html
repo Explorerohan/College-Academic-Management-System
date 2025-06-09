@@ -1,0 +1,33 @@
+{% extends 'users/base.html' %}
+{% block title %}Results | Academic Management System{% endblock %}
+{% block content %}
+<h2 class="text-3xl font-bold mb-6">Your Results</h2>
+<div class="bg-white rounded-lg shadow p-6 overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-blue-50">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marks</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            <tr>
+                <td class="px-6 py-4 whitespace-nowrap">Mathematics</td>
+                <td class="px-6 py-4 whitespace-nowrap">85</td>
+                <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Passed</span></td>
+            </tr>
+            <tr>
+                <td class="px-6 py-4 whitespace-nowrap">Physics</td>
+                <td class="px-6 py-4 whitespace-nowrap">78</td>
+                <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Passed</span></td>
+            </tr>
+            <tr>
+                <td class="px-6 py-4 whitespace-nowrap">Chemistry</td>
+                <td class="px-6 py-4 whitespace-nowrap">62</td>
+                <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Average</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %} 

@@ -1,0 +1,46 @@
+{% if user.is_teacher %}
+<nav class="bg-white shadow mb-8">
+    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center space-x-6">
+            <a href="{% url 'teacher_dashboard' %}" class="text-blue-600 font-bold text-lg">Dashboard</a>
+            <a href="{% url 'teacher_announcements' %}" class="text-gray-700 hover:text-blue-600">Announcements</a>
+            <a href="{% url 'teacher_results' %}" class="text-gray-700 hover:text-blue-600">Results</a>
+            <a href="{% url 'teacher_students' %}" class="text-gray-700 hover:text-blue-600">Students</a>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="{% url 'profile' %}" class="flex items-center">
+                {% if user.profile_image %}
+                    <img src="{{ user.profile_image.url }}" alt="Profile" class="w-10 h-10 rounded-full object-cover border-2 border-blue-500">
+                {% else %}
+                    <span class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-300 text-gray-600">
+                        <i class="fas fa-user"></i>
+                    </span>
+                {% endif %}
+            </a>
+            <a href="{% url 'logout' %}" class="text-gray-700 hover:text-red-500 font-semibold">Logout</a>
+        </div>
+    </div>
+</nav>
+{% else %}
+<nav class="bg-white shadow mb-8">
+    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center space-x-6">
+            <a href="{% url 'student_dashboard' %}" class="text-blue-600 font-bold text-lg">Dashboard</a>
+            <a href="{% url 'student_announcements' %}" class="text-gray-700 hover:text-blue-600">Announcements</a>
+            <a href="{% url 'student_results' %}" class="text-gray-700 hover:text-blue-600">Results</a>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="{% url 'profile' %}" class="flex items-center">
+                {% if user.profile_image %}
+                    <img src="{{ user.profile_image.url }}" alt="Profile" class="w-10 h-10 rounded-full object-cover border-2 border-blue-500">
+                {% else %}
+                    <span class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-300 text-gray-600">
+                        <i class="fas fa-user"></i>
+                    </span>
+                {% endif %}
+            </a>
+            <a href="{% url 'logout' %}" class="text-gray-700 hover:text-red-500 font-semibold">Logout</a>
+        </div>
+    </div>
+</nav>
+{% endif %} 

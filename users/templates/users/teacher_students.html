@@ -1,22 +1,14 @@
 {% extends 'users/base.html' %}
-
 {% block content %}
 <div class="container mx-auto p-6">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold">Teacher Dashboard</h1>
-        <div class="text-gray-600">
-            Total Students: <span class="font-bold">{{ students|length }}</span>
-        </div>
-    </div>
-
+    <h1 class="text-3xl font-bold mb-6">All Students</h1>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {% for student in students %}
         <a href="/teacher/students/{{ student.id }}/" class="block">
             <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-4">
                 <div class="flex items-center space-x-4">
                     {% if student.profile_image %}
-                        <img src="{{ student.profile_image.url }}" alt="{{ student.get_full_name }}" 
-                             class="w-16 h-16 rounded-full object-cover border-2 border-blue-500">
+                        <img src="{{ student.profile_image.url }}" alt="{{ student.get_full_name }}" class="w-16 h-16 rounded-full object-cover border-2 border-blue-500" />
                     {% else %}
                         <div class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
                             <i class="fas fa-user text-gray-400 text-2xl"></i>
@@ -31,11 +23,7 @@
             </div>
         </a>
         {% empty %}
-        <div class="col-span-full">
-            <div class="bg-white rounded-lg shadow-md p-6 text-center">
-                <p class="text-gray-600">No students found.</p>
-            </div>
-        </div>
+        <div class="col-span-full text-center text-gray-500">No students found.</div>
         {% endfor %}
     </div>
 </div>

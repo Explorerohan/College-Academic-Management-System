@@ -1,18 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100">
-    <div class="container mx-auto p-6">
-        <h1 class="text-3xl font-bold mb-6">Student Dashboard</h1>
-        <h2 class="text-2xl font-semibold mb-4">Your Results</h2>
-        <div class="bg-white rounded shadow-md p-6">
-            <p>Your results will appear here.</p>
-        </div>
-    </div>
-</body>
-</html> 
+{% extends 'users/base.html' %}
+{% block title %}Dashboard | Academic Management System{% endblock %}
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold mb-2">Welcome, {{ user.full_name|default:user.email }}!</h1>
+    <p class="text-gray-600">This is your student dashboard. Use the quick links below to access your academic information.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <a href="/student/announcements/" class="bg-blue-50 hover:bg-blue-100 transition rounded-lg shadow p-6 flex flex-col items-center">
+        <i class="fas fa-bullhorn text-3xl text-blue-600 mb-2"></i>
+        <span class="font-semibold text-lg">Announcements</span>
+        <span class="text-gray-500 text-sm mt-1">View latest updates</span>
+    </a>
+    <a href="/student/results/" class="bg-green-50 hover:bg-green-100 transition rounded-lg shadow p-6 flex flex-col items-center">
+        <i class="fas fa-chart-bar text-3xl text-green-600 mb-2"></i>
+        <span class="font-semibold text-lg">Results</span>
+        <span class="text-gray-500 text-sm mt-1">Check your marks</span>
+    </a>
+    <a href="/student/profile/" class="bg-yellow-50 hover:bg-yellow-100 transition rounded-lg shadow p-6 flex flex-col items-center">
+        <i class="fas fa-user text-3xl text-yellow-600 mb-2"></i>
+        <span class="font-semibold text-lg">Profile</span>
+        <span class="text-gray-500 text-sm mt-1">View and edit your profile</span>
+    </a>
+</div>
+{% endblock %} 

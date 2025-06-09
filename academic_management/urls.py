@@ -15,14 +15,16 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.shortcuts import redirect
-from users.views import login_view, teacher_dashboard, student_dashboard
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('login/', login_view, name='login'),
-    path('teacher/dashboard/', teacher_dashboard, name='teacher_dashboard'),
-    path('student/dashboard/', student_dashboard, name='student_dashboard'),
+    path('', include('users.urls')),  # Include all users app URLs
     path('', lambda request: redirect('login'), name='home'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
