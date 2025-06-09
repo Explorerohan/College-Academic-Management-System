@@ -263,8 +263,12 @@ def teacher_announcements(request):
 def teacher_results(request):
     if not request.user.is_teacher:
         return redirect('login')
-    results = Result.objects.all()
-    return render(request, 'users/teacher_results.html', {'results': results})
+    students = User.objects.filter(role='student')
+    results = Result.objects.all().order_by('-created_at')
+    return render(request, 'users/teacher_results.html', {
+        'students': students,
+        'results': results
+    })
 
 @login_required
 def teacher_students(request):

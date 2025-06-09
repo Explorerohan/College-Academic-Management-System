@@ -1,32 +1,133 @@
 {% extends 'users/base.html' %}
 {% block content %}
 <div class="container mx-auto p-6">
-    <h1 class="text-3xl font-bold mb-6">All Results</h1>
-    <div class="overflow-x-auto">
-        <table class="min-w-full bg-white rounded shadow">
-            <thead class="bg-blue-50">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marks</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Grade</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-                {% for result in results %}
-                <tr>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ result.student.get_full_name }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ result.subject }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ result.marks_obtained }}/{{ result.total_marks }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ result.grade }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ result.created_at|date:"Y-m-d H:i" }}</td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="5" class="text-center text-gray-500 py-4">No results found.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <h1 class="text-3xl font-bold mb-6">Student Results Management</h1>
+    
+    <!-- Student Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+        {% for student in students %}
+        <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
+            <div class="p-4">
+                <div class="flex items-center space-x-4 mb-4">
+                    {% if student.profile_image %}
+                        <img src="{{ student.profile_image.url }}" alt="{{ student.get_full_name }}" 
+                             class="w-16 h-16 rounded-full object-cover border-2 border-blue-500">
+                    {% else %}
+                        <div class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
+                            <i class="fas fa-user text-gray-400 text-2xl"></i>
+                        </div>
+                    {% endif %}
+                    <div>
+                        <h3 class="font-semibold text-lg text-gray-800">{{ student.get_full_name }}</h3>
+                        <p class="text-gray-600 text-sm">{{ student.email }}</p>
+                    </div>
+                </div>
+                
+                <!-- Student Results Summary -->
+                <div class="border-t pt-4">
+                    {% with student_results=student.result_set.all %}
+                        {% if student_results %}
+                            <div class="space-y-2">
+                                {% for result in student_results|slice:":3" %}
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="text-gray-600">{{ result.subject }}</span>
+                                    <span class="font-medium {% if result.grade in 'ABC' %}text-green-600{% elif result.grade == 'D' %}text-yellow-600{% else %}text-red-600{% endif %}">
+                                        {{ result.grade }} ({{ result.marks_obtained }}/{{ result.total_marks }})
+                                    </span>
+                                </div>
+                                {% endfor %}
+                                {% if student_results|length > 3 %}
+                                    <p class="text-blue-600 text-sm text-center">+{{ student_results|length|add:"-3" }} more subjects</p>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <p class="text-gray-500 text-sm text-center">No results available</p>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="mt-4 flex justify-between items-center">
+                    <a href="{% url 'teacher_add_result' student.id %}" 
+                       class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="fas fa-plus mr-2"></i>Add Result
+                    </a>
+                    <a href="{% url 'teacher_student_detail' student.id %}" 
+                       class="text-blue-600 hover:text-blue-800 text-sm">
+                        View Details →
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full">
+            <div class="bg-white rounded-lg shadow-md p-6 text-center">
+                <p class="text-gray-600">No students found.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- All Results Table (Collapsible) -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-4 border-b">
+            <h2 class="text-xl font-semibold text-gray-800">All Results</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marks</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Grade</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for result in results %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                {% if result.student.profile_image %}
+                                    <img src="{{ result.student.profile_image.url }}" alt="{{ result.student.get_full_name }}" 
+                                         class="w-8 h-8 rounded-full object-cover mr-3">
+                                {% else %}
+                                    <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+                                        <i class="fas fa-user text-gray-400"></i>
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">{{ result.student.get_full_name }}</div>
+                                    <div class="text-sm text-gray-500">{{ result.student.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ result.subject }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ result.marks_obtained }}/{{ result.total_marks }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {% if result.grade in 'ABC' %}bg-green-100 text-green-800
+                                {% elif result.grade == 'D' %}bg-yellow-100 text-yellow-800
+                                {% else %}bg-red-100 text-red-800{% endif %}">
+                                {{ result.grade }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ result.created_at|date:"Y-m-d H:i" }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <a href="{% url 'teacher_add_result' result.student.id %}" 
+                               class="text-blue-600 hover:text-blue-900">Edit</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">No results found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
-{% endblock %> 
+{% endblock %} 
