@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.db import models
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 # Create your models here.
 
@@ -95,16 +96,34 @@ class Result(models.Model):
     GRADE_CHOICES = [
         ('A+', 'A+'),
         ('A', 'A'),
-        ('A-', 'A-'),
         ('B+', 'B+'),
         ('B', 'B'),
-        ('B-', 'B-'),
         ('C+', 'C+'),
         ('C', 'C'),
-        ('C-', 'C-'),
         ('D+', 'D+'),
         ('D', 'D'),
         ('F', 'F'),
+    ]
+
+    GRADE_RANGES = {
+        'A+': (90, 100),
+        'A': (80, 89.99),
+        'B+': (70, 79.99),
+        'B': (60, 69.99),
+        'C+': (50, 59.99),
+        'C': (40, 49.99),
+        'D+': (35, 39.99),
+        'D': (30, 34.99),
+        'F': (0, 29.99),
+    }
+
+    PERFORMANCE_CHOICES = [
+        ('excellent', 'Excellent'),
+        ('very_good', 'Very Good'),
+        ('good', 'Good'),
+        ('satisfactory', 'Satisfactory'),
+        ('needs_improvement', 'Needs Improvement'),
+        ('poor', 'Poor'),
     ]
 
     student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='results')
@@ -113,6 +132,7 @@ class Result(models.Model):
     total_marks = models.DecimalField(max_digits=5, decimal_places=2, default=100)
     grade = models.CharField(max_length=2, choices=GRADE_CHOICES)
     remarks = models.TextField(blank=True, null=True)
+    overall_performance = models.CharField(max_length=20, choices=PERFORMANCE_CHOICES, blank=True, null=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='results_created')
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
@@ -125,4 +145,31 @@ class Result(models.Model):
         return f"{self.student.get_full_name()} - {self.subject}"
 
     def percentage(self):
+        """Calculate the percentage of marks obtained"""
+        if self.total_marks == 0:
+            return 0
         return (self.marks_obtained / self.total_marks) * 100
+
+    def calculate_grade(self):
+        """Calculate grade based on percentage"""
+        percentage = self.percentage()
+        for grade, (min_percent, max_percent) in self.GRADE_RANGES.items():
+            if min_percent <= percentage <= max_percent:
+                return grade
+        return 'F'  # Default to F if no range matches
+
+    def save(self, *args, **kwargs):
+        """Override save to ensure grade matches percentage"""
+        calculated_grade = self.calculate_grade()
+        if self.grade != calculated_grade:
+            self.grade = calculated_grade
+        super().save(*args, **kwargs)
+
+    def clean(self):
+        """Validate the result data"""
+        if self.marks_obtained > self.total_marks:
+            raise ValidationError('Marks obtained cannot be greater than total marks')
+        if self.marks_obtained < 0:
+            raise ValidationError('Marks obtained cannot be negative')
+        if self.total_marks <= 0:
+            raise ValidationError('Total marks must be greater than zero')

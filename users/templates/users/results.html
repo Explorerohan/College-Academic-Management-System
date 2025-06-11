@@ -16,7 +16,7 @@
                             {% with total_marks=total_marks|add:result.total_marks total_obtained=total_obtained|add:result.marks_obtained %}{% endwith %}
                         {% endfor %}
                         {% if total_marks > 0 %}
-                            {% with overall_percentage=total_obtained|stringformat:"d"|add:"0"|divisibleby:total_marks|stringformat:"d"|add:"0"|floatformat:1 %}
+                            {% widthratio total_obtained total_marks 100 as overall_percentage %}
                             <div class="space-y-3">
                                 <div class="flex justify-between items-center">
                                     <span class="text-gray-600">Total Subjects</span>
@@ -39,13 +39,24 @@
                                         {% elif overall_percentage >= 80 %}A
                                         {% elif overall_percentage >= 70 %}B+
                                         {% elif overall_percentage >= 60 %}B
-                                        {% elif overall_percentage >= 50 %}C
-                                        {% elif overall_percentage >= 40 %}D
+                                        {% elif overall_percentage >= 50 %}C+
+                                        {% elif overall_percentage >= 40 %}C
+                                        {% elif overall_percentage >= 35 %}D+
+                                        {% elif overall_percentage >= 30 %}D
                                         {% else %}F{% endif %}
                                     </span>
                                 </div>
+                                {% with latest_result=results|first %}
+                                {% if latest_result.overall_performance %}
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Teacher's Assessment</span>
+                                    <span class="font-semibold {% if latest_result.overall_performance in 'excellent,very_good,good' %}text-green-600{% elif latest_result.overall_performance == 'satisfactory' %}text-yellow-600{% else %}text-red-600{% endif %}">
+                                        {{ latest_result.get_overall_performance_display }}
+                                    </span>
+                                </div>
+                                {% endif %}
+                                {% endwith %}
                             </div>
-                            {% endwith %}
                         {% else %}
                             <p class="text-gray-500 text-center">No valid marks available.</p>
                         {% endif %}
@@ -63,7 +74,7 @@
                 <div class="space-y-3">
                     {% for result in results %}
                         {% if result.total_marks > 0 %}
-                            {% with percentage=result.marks_obtained|stringformat:"d"|add:"0"|divisibleby:result.total_marks|stringformat:"d"|add:"0"|floatformat:1 %}
+                            {% widthratio result.marks_obtained result.total_marks 100 as percentage %}
                             <div class="flex justify-between items-center">
                                 <span class="text-gray-600">{{ result.subject }}</span>
                                 <div class="text-right">
@@ -75,7 +86,6 @@
                                     </span>
                                 </div>
                             </div>
-                            {% endwith %}
                         {% endif %}
                     {% endfor %}
                 </div>
@@ -87,48 +97,72 @@
         <!-- Grade Distribution Card -->
         <div class="bg-white rounded-lg shadow-md p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4">Grade Distribution</h3>
-            {% if results %}
-                {% with a_count=0 b_count=0 c_count=0 d_count=0 f_count=0 %}
-                    {% for result in results %}
-                        {% if result.total_marks > 0 %}
-                            {% with percentage=result.marks_obtained|stringformat:"d"|add:"0"|divisibleby:result.total_marks|stringformat:"d"|add:"0"|floatformat:1 %}
-                                {% if percentage >= 80 %}
-                                    {% with a_count=a_count|add:1 %}{% endwith %}
-                                {% elif percentage >= 60 %}
-                                    {% with b_count=b_count|add:1 %}{% endwith %}
-                                {% elif percentage >= 50 %}
-                                    {% with c_count=c_count|add:1 %}{% endwith %}
-                                {% elif percentage >= 40 %}
-                                    {% with d_count=d_count|add:1 %}{% endwith %}
-                                {% else %}
-                                    {% with f_count=f_count|add:1 %}{% endwith %}
-                                {% endif %}
-                            {% endwith %}
-                        {% endif %}
-                    {% endfor %}
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">Grade A (80% and above)</span>
-                            <span class="font-semibold text-green-600">{{ a_count }}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">Grade B (60-79%)</span>
-                            <span class="font-semibold text-green-600">{{ b_count }}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">Grade C (50-59%)</span>
-                            <span class="font-semibold text-yellow-600">{{ c_count }}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">Grade D (40-49%)</span>
-                            <span class="font-semibold text-yellow-600">{{ d_count }}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">Grade F (Below 40%)</span>
-                            <span class="font-semibold text-red-600">{{ f_count }}</span>
-                        </div>
+            
+            <!-- Grading System Breakdown -->
+            <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                <h4 class="text-sm font-medium text-gray-700 mb-3">Grading System</h4>
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-600">A+ (Excellent)</span>
+                        <span class="font-medium text-green-600">90% - 100%</span>
                     </div>
-                {% endwith %}
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-600">A (Very Good)</span>
+                        <span class="font-medium text-green-600">80% - 89.99%</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-600">B+ (Good)</span>
+                        <span class="font-medium text-green-600">70% - 79.99%</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-600">B (Above Average)</span>
+                        <span class="font-medium text-green-600">60% - 69.99%</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-600">C+ (Average)</span>
+                        <span class="font-medium text-yellow-600">50% - 59.99%</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-600">C (Below Average)</span>
+                        <span class="font-medium text-yellow-600">40% - 49.99%</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-600">D+ (Poor)</span>
+                        <span class="font-medium text-yellow-600">35% - 39.99%</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-600">D (Very Poor)</span>
+                        <span class="font-medium text-yellow-600">30% - 34.99%</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-600">F (Fail)</span>
+                        <span class="font-medium text-red-600">Below 30%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Your Grade Distribution -->
+            <h4 class="text-sm font-medium text-gray-700 mb-3">Your Grade Distribution</h4>
+            {% if results %}
+                <div class="space-y-3">
+                    {% for grade, range in grade_ranges.items %}
+                        {% with count=0 %}
+                            {% for result in results %}
+                                {% if result.grade == grade %}
+                                    {% with count=count|add:1 %}{% endwith %}
+                                {% endif %}
+                            {% endfor %}
+                            {% if count > 0 %}
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Grade {{ grade }}</span>
+                                <span class="font-semibold {% if grade in 'A+,A' %}text-green-600{% elif grade in 'B+,B' %}text-green-600{% elif grade in 'C+,C' %}text-yellow-600{% elif grade in 'D+,D' %}text-yellow-600{% else %}text-red-600{% endif %}">
+                                    {{ count }} subject{% if count != 1 %}s{% endif %}
+                                </span>
+                            </div>
+                            {% endif %}
+                        {% endwith %}
+                    {% endfor %}
+                </div>
             {% else %}
                 <p class="text-gray-500 text-center">No grades available yet.</p>
             {% endif %}
@@ -155,11 +189,11 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                     {% for result in results %}
                     {% if result.total_marks > 0 %}
-                    {% with percentage=result.marks_obtained|stringformat:"d"|add:"0"|divisibleby:result.total_marks|stringformat:"d"|add:"0"|floatformat:1 %}
+                    {% with percentage=result.percentage %}
                     <tr>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ result.subject }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ result.marks_obtained }}/{{ result.total_marks }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ percentage }}%</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ percentage|floatformat:1 }}%</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                                 {% if percentage >= 80 %}bg-green-100 text-green-800
@@ -167,13 +201,7 @@
                                 {% elif percentage >= 50 %}bg-yellow-100 text-yellow-800
                                 {% elif percentage >= 40 %}bg-yellow-100 text-yellow-800
                                 {% else %}bg-red-100 text-red-800{% endif %}">
-                                {% if percentage >= 90 %}A+
-                                {% elif percentage >= 80 %}A
-                                {% elif percentage >= 70 %}B+
-                                {% elif percentage >= 60 %}B
-                                {% elif percentage >= 50 %}C
-                                {% elif percentage >= 40 %}D
-                                {% else %}F{% endif %}
+                                {{ result.grade }}
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ result.created_at|date:"Y-m-d H:i" }}</td>

@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
 from django.db.models import Q
+from django.core.exceptions import ValidationError
 
 # Create your views here.
 
@@ -145,60 +146,88 @@ def teacher_add_result(request, student_id):
     student = get_object_or_404(User, id=student_id, role='student')
     
     if request.method == 'POST':
-        subject = request.POST.get('subject')
-        marks = request.POST.get('marks')
-        total_marks = request.POST.get('total_marks')
-        grade = request.POST.get('grade')
-        remarks = request.POST.get('remarks')
-        send_email = request.POST.get('send_email') == 'on'
-        
-        # Check if result already exists for this subject
-        existing_result = Result.objects.filter(student=student, subject=subject).first()
-        
-        if existing_result:
-            # Update existing result
-            existing_result.marks_obtained = marks
-            existing_result.total_marks = total_marks
-            existing_result.grade = grade
-            existing_result.remarks = remarks
-            existing_result.save()
-            result = existing_result
-        else:
-            # Create new result
-            result = Result.objects.create(
+        try:
+            subject = request.POST.get('subject')
+            marks = float(request.POST.get('marks', 0))
+            total_marks = float(request.POST.get('total_marks', 100))
+            remarks = request.POST.get('remarks')
+            overall_performance = request.POST.get('overall_performance')
+            send_email = request.POST.get('send_email') == 'on'
+            
+            # Create a temporary result object to calculate grade
+            temp_result = Result(
                 student=student,
                 subject=subject,
                 marks_obtained=marks,
                 total_marks=total_marks,
-                grade=grade,
                 remarks=remarks,
+                overall_performance=overall_performance,
                 created_by=request.user
             )
-        
-        if send_email:
-            # Send email to student
-            send_mail(
-                subject=f'New Result Published: {subject}',
-                message=f'''
-                Dear {student.get_full_name()},
-                
-                Your result for {subject} has been published:
-                
-                Marks Obtained: {marks}/{total_marks}
-                Grade: {grade}
-                Percentage: {result.percentage():.2f}%
-                
-                Remarks: {remarks or 'No remarks'}
-                
-                This is an automated message from the Academic Management System.
-                ''',
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[student.email],
-                fail_silently=True,
-            )
-        
-        messages.success(request, 'Result saved successfully!')
-        return redirect('teacher_student_detail', student_id=student.id)
+            
+            # Validate the result
+            temp_result.clean()
+            
+            # Calculate grade based on percentage
+            grade = temp_result.calculate_grade()
+            
+            # Check if result already exists for this subject
+            existing_result = Result.objects.filter(student=student, subject=subject).first()
+            
+            if existing_result:
+                # Update existing result
+                existing_result.marks_obtained = marks
+                existing_result.total_marks = total_marks
+                existing_result.grade = grade
+                existing_result.remarks = remarks
+                existing_result.overall_performance = overall_performance
+                existing_result.save()
+                result = existing_result
+            else:
+                # Create new result
+                result = Result.objects.create(
+                    student=student,
+                    subject=subject,
+                    marks_obtained=marks,
+                    total_marks=total_marks,
+                    grade=grade,
+                    remarks=remarks,
+                    overall_performance=overall_performance,
+                    created_by=request.user
+                )
+            
+            if send_email:
+                # Send email to student
+                send_mail(
+                    subject=f'New Result Published: {subject}',
+                    message=f'''
+                    Dear {student.get_full_name()},
+                    
+                    Your result for {subject} has been published:
+                    
+                    Marks Obtained: {marks}/{total_marks}
+                    Percentage: {result.percentage():.2f}%
+                    Grade: {grade}
+                    Overall Performance: {result.get_overall_performance_display() or 'Not specified'}
+                    
+                    Remarks: {remarks or 'No remarks'}
+                    
+                    This is an automated message from the Academic Management System.
+                    ''',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[student.email],
+                    fail_silently=True,
+                )
+            
+            messages.success(request, 'Result saved successfully!')
+            return redirect('teacher_student_detail', student_id=student.id)
+            
+        except ValidationError as e:
+            messages.error(request, str(e))
+        except ValueError:
+            messages.error(request, 'Invalid marks entered. Please enter valid numbers.')
+        except Exception as e:
+            messages.error(request, f'An error occurred: {str(e)}')
     
     return render(request, 'users/teacher_add_result.html', {'student': student})
 
@@ -225,7 +254,11 @@ def student_results(request):
         return redirect('login')
     
     results = Result.objects.filter(student=request.user)
-    return render(request, 'users/results.html', {'results': results})
+    context = {
+        'results': results,
+        'grade_ranges': Result.GRADE_RANGES
+    }
+    return render(request, 'users/results.html', context)
 
 @login_required
 def profile(request):
@@ -276,3 +309,110 @@ def teacher_students(request):
         return redirect('login')
     students = User.objects.filter(role='student')
     return render(request, 'users/teacher_students.html', {'students': students})
+
+@login_required
+def teacher_edit_result(request, result_id):
+    if not request.user.is_teacher:
+        return redirect('login')
+    
+    result = get_object_or_404(Result, id=result_id)
+    student = result.student
+    
+    if request.method == 'POST':
+        try:
+            subject = request.POST.get('subject')
+            marks = float(request.POST.get('marks', 0))
+            total_marks = float(request.POST.get('total_marks', 100))
+            remarks = request.POST.get('remarks')
+            overall_performance = request.POST.get('overall_performance')
+            send_email = request.POST.get('send_email') == 'on'
+            
+            # Create a temporary result object to calculate grade
+            temp_result = Result(
+                student=student,
+                subject=subject,
+                marks_obtained=marks,
+                total_marks=total_marks,
+                remarks=remarks,
+                overall_performance=overall_performance,
+                created_by=request.user
+            )
+            
+            # Validate the result
+            temp_result.clean()
+            
+            # Calculate grade based on percentage
+            grade = temp_result.calculate_grade()
+            
+            # Update the result
+            result.subject = subject
+            result.marks_obtained = marks
+            result.total_marks = total_marks
+            result.grade = grade
+            result.remarks = remarks
+            result.overall_performance = overall_performance
+            result.save()
+            
+            if send_email:
+                # Send email to student
+                send_mail(
+                    subject=f'Result Updated: {subject}',
+                    message=f'''
+                    Dear {student.get_full_name()},
+                    
+                    Your result for {subject} has been updated:
+                    
+                    Marks Obtained: {marks}/{total_marks}
+                    Percentage: {result.percentage():.2f}%
+                    Grade: {grade}
+                    Overall Performance: {result.get_overall_performance_display() or 'Not specified'}
+                    
+                    Remarks: {remarks or 'No remarks'}
+                    
+                    This is an automated message from the Academic Management System.
+                    ''',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[student.email],
+                    fail_silently=True,
+                )
+            
+            messages.success(request, 'Result updated successfully!')
+            return redirect('teacher_results')
+            
+        except ValidationError as e:
+            messages.error(request, str(e))
+        except ValueError:
+            messages.error(request, 'Invalid marks entered. Please enter valid numbers.')
+        except Exception as e:
+            messages.error(request, f'An error occurred: {str(e)}')
+    
+    context = {
+        'student': student,
+        'result': result,
+        'is_edit': True
+    }
+    return render(request, 'users/teacher_add_result.html', context)
+
+@login_required
+def teacher_delete_result(request, result_id):
+    if not request.user.is_teacher:
+        messages.error(request, 'You do not have permission to delete results.')
+        return redirect('login')
+    
+    try:
+        result = get_object_or_404(Result, id=result_id)
+        
+        if request.method == 'POST':
+            student_name = result.student.get_full_name()
+            subject = result.subject
+            result.delete()
+            messages.success(request, f'Result for {student_name} in {subject} has been deleted successfully!')
+        else:
+            messages.error(request, 'Invalid request method. Please use the delete button.')
+            
+    except Result.DoesNotExist:
+        messages.error(request, 'The result you are trying to delete does not exist.')
+    except Exception as e:
+        messages.error(request, f'An error occurred while deleting the result: {str(e)}')
+    
+    return redirect('teacher_results')
