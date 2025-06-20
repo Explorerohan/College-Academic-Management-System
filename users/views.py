@@ -23,6 +23,8 @@ def login_view(request):
                 return redirect('student_dashboard')
             else:
                 return redirect('admin:index')
+        else:
+            messages.error(request, 'Invalid email or password. Please try again.')
     return render(request, 'users/login.html')
 
 @login_required
