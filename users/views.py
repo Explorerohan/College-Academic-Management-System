@@ -264,13 +264,13 @@ def student_results(request):
 
 @login_required
 def profile(request):
-    if request.user.role != 'student':
+    if request.user.role not in ['student', 'teacher']:
         return redirect('login')
     return render(request, 'users/profile.html')
 
 @login_required
 def edit_profile(request):
-    if request.user.role != 'student':
+    if request.user.role not in ['student', 'teacher']:
         return redirect('login')
     if request.method == 'POST':
         user = request.user
