@@ -431,11 +431,7 @@ def teacher_edit_announcement(request, announcement_id):
         announcement.priority = request.POST.get('priority')
         announcement.save()
         messages.success(request, 'Announcement updated successfully!')
-        # Redirect to the correct page based on announcement type
-        if announcement.student:
-            return redirect('teacher_student_detail', student_id=announcement.student.id)
-        else:
-            return redirect('teacher_announcements')
+        return redirect('teacher_announcements')
     context = {'announcement': announcement}
     if announcement.student:
         context['student'] = announcement.student
