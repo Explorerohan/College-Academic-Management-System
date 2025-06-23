@@ -26,6 +26,10 @@
                         <span class="ml-2 text-xs px-2 py-1 rounded bg-green-100 text-green-700">{{ announcement.get_priority_display }}</span>
                     {% endif %}
                 </div>
+                <div class="flex space-x-2 mt-4">
+                    <a href="{% url 'teacher_edit_announcement' announcement.id %}" class="px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 text-sm">Edit</a>
+                    <a href="{% url 'teacher_delete_announcement' announcement.id %}" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm">Delete</a>
+                </div>
             </div>
             {% empty %}
             <div class="col-span-full text-gray-500">No global announcements found.</div>
@@ -53,6 +57,10 @@
                     {% else %}
                         <span class="ml-2 text-xs px-2 py-1 rounded bg-green-100 text-green-700">{{ announcement.get_priority_display }}</span>
                     {% endif %}
+                </div>
+                <div class="flex space-x-2 mt-4">
+                    <a href="{% url 'teacher_edit_announcement' announcement.id %}" class="px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 text-sm">Edit</a>
+                    <a href="{% url 'teacher_delete_announcement' announcement.id %}" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm">Delete</a>
                 </div>
             </div>
             {% empty %}

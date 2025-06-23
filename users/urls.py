@@ -18,6 +18,8 @@ urlpatterns = [
     path('teacher/students/<int:student_id>/add-result/', views.teacher_add_result, name='teacher_add_result'),
     path('teacher/results/<int:result_id>/edit/', views.teacher_edit_result, name='teacher_edit_result'),
     path('teacher/results/<int:result_id>/delete/', views.teacher_delete_result, name='teacher_delete_result'),
+    path('teacher/announcements/<int:announcement_id>/edit/', views.teacher_edit_announcement, name='teacher_edit_announcement'),
+    path('teacher/announcements/<int:announcement_id>/delete/', views.teacher_delete_announcement, name='teacher_delete_announcement'),
     
     # Student URLs
     path('student/dashboard/', views.student_dashboard, name='student_dashboard'),

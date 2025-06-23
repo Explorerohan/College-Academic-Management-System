@@ -7,6 +7,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.db.models import Q
 from django.core.exceptions import ValidationError
+from django.urls import reverse
 
 # Create your views here.
 
@@ -418,3 +419,42 @@ def teacher_delete_result(request, result_id):
         messages.error(request, f'An error occurred while deleting the result: {str(e)}')
     
     return redirect('teacher_results')
+
+@login_required
+def teacher_edit_announcement(request, announcement_id):
+    if not request.user.is_teacher:
+        return redirect('login')
+    announcement = get_object_or_404(Announcement, id=announcement_id)
+    if request.method == 'POST':
+        announcement.title = request.POST.get('title')
+        announcement.content = request.POST.get('content')
+        announcement.priority = request.POST.get('priority')
+        announcement.save()
+        messages.success(request, 'Announcement updated successfully!')
+        # Redirect to the correct page based on announcement type
+        if announcement.student:
+            return redirect('teacher_student_detail', student_id=announcement.student.id)
+        else:
+            return redirect('teacher_announcements')
+    context = {'announcement': announcement}
+    if announcement.student:
+        context['student'] = announcement.student
+    return render(request, 'users/teacher_edit_announcement.html', context)
+
+@login_required
+def teacher_delete_announcement(request, announcement_id):
+    if not request.user.is_teacher:
+        return redirect('login')
+    announcement = get_object_or_404(Announcement, id=announcement_id)
+    student_id = announcement.student.id if announcement.student else None
+    if request.method == 'POST':
+        announcement.delete()
+        messages.success(request, 'Announcement deleted successfully!')
+        if student_id:
+            return redirect('teacher_student_detail', student_id=student_id)
+        else:
+            return redirect('teacher_announcements')
+    context = {'announcement': announcement}
+    if student_id:
+        context['student'] = announcement.student
+    return render(request, 'users/teacher_delete_announcement.html', context)
